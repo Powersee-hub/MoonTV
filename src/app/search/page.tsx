@@ -201,7 +201,15 @@ function SearchPageClient() {
                   ? aggregatedResults.map(([mapKey, group]) => {
                       return (
                         <div key={`agg-${mapKey}`} className='w-full'>
-                          <VideoCard from='search' items={group} />
+                          <VideoCard
+                            from='search'
+                            items={group}
+                            query={
+                              searchQuery.trim() !== group[0].title
+                                ? searchQuery.trim()
+                                : ''
+                            }
+                          />
                         </div>
                       );
                     })
@@ -218,6 +226,11 @@ function SearchPageClient() {
                           source={item.source}
                           source_name={item.source_name}
                           douban_id={item.douban_id?.toString()}
+                          query={
+                            searchQuery.trim() !== item.title
+                              ? searchQuery.trim()
+                              : ''
+                          }
                           from='search'
                         />
                       </div>

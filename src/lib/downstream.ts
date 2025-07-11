@@ -328,6 +328,10 @@ async function handleSpecialSourceDetail(
   const coverMatch = html.match(/(https?:\/\/[^"'\s]+?\.jpg)/g);
   const coverUrl = coverMatch ? coverMatch[0].trim() : '';
 
+  // 提取年份
+  const yearMatch = html.match(/>(\d{4})</);
+  const yearText = yearMatch ? yearMatch[1] : '';
+
   return {
     code: 200,
     episodes: matches,
@@ -338,6 +342,7 @@ async function handleSpecialSourceDetail(
       desc: descText,
       source_name: apiSite.name,
       source: apiSite.key,
+      year: yearText,
       id,
     },
   };

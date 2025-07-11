@@ -12,6 +12,7 @@ interface VideoCardProps {
   id?: string;
   source?: string;
   title?: string;
+  query?: string;
   poster?: string;
   episodes?: number;
   source_name?: string;
@@ -28,6 +29,7 @@ interface VideoCardProps {
 export default function VideoCard({
   id,
   title = '',
+  query = '',
   poster = '',
   episodes,
   source,
@@ -54,7 +56,6 @@ export default function VideoCard({
 
     const countMap = new Map<string | number, number>();
     const episodeCountMap = new Map<number, number>();
-    const yearCountMap = new Map<string, number>();
 
     items.forEach((item) => {
       if (item.douban_id && item.douban_id !== 0) {
@@ -63,10 +64,6 @@ export default function VideoCard({
       const len = item.episodes?.length || 0;
       if (len > 0) {
         episodeCountMap.set(len, (episodeCountMap.get(len) || 0) + 1);
-      }
-      if (item.year?.trim()) {
-        const yearStr = item.year.trim();
-        yearCountMap.set(yearStr, (yearCountMap.get(yearStr) || 0) + 1);
       }
     });
 
@@ -88,7 +85,6 @@ export default function VideoCard({
       first: items[0],
       mostFrequentDoubanId: getMostFrequent(countMap),
       mostFrequentEpisodes: getMostFrequent(episodeCountMap) || 0,
-      mostFrequentYear: getMostFrequent(yearCountMap),
     };
   }, [isAggregate, items]);
 
@@ -100,7 +96,15 @@ export default function VideoCard({
     aggregateData?.mostFrequentDoubanId ?? douban_id
   );
   const actualEpisodes = aggregateData?.mostFrequentEpisodes ?? episodes;
-  const actualYear = aggregateData?.mostFrequentYear ?? year;
+  const actualYear = isAggregate
+    ? aggregateData?.first.year || 'unknown'
+    : year;
+  const actualQuery = query || '';
+  const actualSearchType = isAggregate
+    ? aggregateData?.first.episodes.length === 1
+      ? 'movie'
+      : 'tv'
+    : '';
 
   // 获取收藏状态
   useEffect(() => {
@@ -174,10 +178,24 @@ export default function VideoCard({
       router.push(
         `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
           actualTitle
-        )}${actualYear ? `&year=${actualYear}` : ''}`
+        )}${actualYear ? `&year=${actualYear}` : ''}${
+          isAggregate ? '&prefer=true' : ''
+        }${
+          actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`
       );
     }
-  }, [from, actualSource, actualId, router, actualTitle, actualYear]);
+  }, [
+    from,
+    actualSource,
+    actualId,
+    router,
+    actualTitle,
+    actualYear,
+    isAggregate,
+    actualQuery,
+    actualSearchType,
+  ]);
 
   const config = useMemo(() => {
     const configs = {
@@ -249,7 +267,7 @@ export default function VideoCard({
         />
 
         {/* 悬浮层 - 添加渐变动画效果 */}
-        <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center'>
+        <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer'>
           {config.showPlayButton && (
             <PlayCircleIcon
               size={52}
