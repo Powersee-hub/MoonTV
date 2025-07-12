@@ -40,7 +40,7 @@ function SearchPageClient() {
   const aggregatedResults = useMemo(() => {
     const map = new Map<string, SearchResult[]>();
     searchResults.forEach((item) => {
-      // 使用 title + year + type 作为键，若 year 不存在则使用 'unknown'
+      // 使用 title + year + type 作为键，year 必然存在，但依然兜底 'unknown'
       const key = `${item.title}-${item.year || 'unknown'}-${
         item.episodes.length === 1 ? 'movie' : 'tv'
       }`;
