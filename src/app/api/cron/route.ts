@@ -1,12 +1,45 @@
 /* eslint-disable no-console */
 
-import { db } from '@/lib/db';
-import { type VideoDetail, fetchVideoDetail } from '@/lib/fetchVideoDetail';
+import { NextRequest, NextResponse } from 'next/server';
 
-const STORAGE_TYPE = process.env.NEXT_PUBLIC_STORAGE_TYPE ?? 'localstorage';
+import { db } from '@/lib/db';
+import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
+import { SearchResult } from '@/lib/types';
+
+export const runtime = 'edge';
+
+export async function GET(request: NextRequest) {
+  console.log(request.url);
+  try {
+    console.log('Cron job triggered:', new Date().toISOString());
+
+    refreshRecordAndFavorites();
+
+    return NextResponse.json({
+      success: true,
+      message: 'Cron job executed successfully',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Cron job failed:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Cron job failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
+  }
+}
 
 async function refreshRecordAndFavorites() {
-  if (STORAGE_TYPE === 'localstorage') {
+  if (
+    process.env.NEXT_PUBLIC_STORAGE_TYPE ||
+    'localstorage' === 'localstorage'
+  ) {
     return;
   }
 
@@ -16,14 +49,14 @@ async function refreshRecordAndFavorites() {
       users.push(process.env.USERNAME);
     }
     // 函数级缓存：key 为 `${source}+${id}`，值为 Promise<VideoDetail | null>
-    const detailCache = new Map<string, Promise<VideoDetail | null>>();
+    const detailCache = new Map<string, Promise<SearchResult | null>>();
 
     // 获取详情 Promise（带缓存和错误处理）
     const getDetail = async (
       source: string,
       id: string,
       fallbackTitle: string
-    ): Promise<VideoDetail | null> => {
+    ): Promise<SearchResult | null> => {
       const key = `${source}+${id}`;
       let promise = detailCache.get(key);
       if (!promise) {
@@ -154,5 +187,3 @@ async function refreshRecordAndFavorites() {
     console.error('刷新播放记录/收藏任务启动失败', err);
   }
 }
-
-export default refreshRecordAndFavorites;

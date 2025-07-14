@@ -16,7 +16,6 @@ import {
   savePlayRecord,
   toggleFavorite,
 } from '@/lib/db.client';
-import { type VideoDetail } from '@/lib/fetchVideoDetail.client';
 import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8 } from '@/lib/utils';
 
@@ -43,7 +42,7 @@ function PlayPageClient() {
   >('searching');
   const [loadingMessage, setLoadingMessage] = useState('正在搜索播放源...');
   const [error, setError] = useState<string | null>(null);
-  const [detail, setDetail] = useState<VideoDetail | null>(null);
+  const [detail, setDetail] = useState<SearchResult | null>(null);
 
   // 收藏状态
   const [favorited, setFavorited] = useState(false);
@@ -90,7 +89,7 @@ function PlayPageClient() {
   const currentIdRef = useRef(currentId);
   const videoTitleRef = useRef(videoTitle);
   const videoYearRef = useRef(videoYear);
-  const detailRef = useRef<VideoDetail | null>(detail);
+  const detailRef = useRef<SearchResult | null>(detail);
   const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
 
   // 同步最新值到 refs
@@ -355,7 +354,7 @@ function PlayPageClient() {
 
   // 更新视频地址
   const updateVideoUrl = (
-    detailData: VideoDetail | null,
+    detailData: SearchResult | null,
     episodeIndex: number
   ) => {
     if (
@@ -1589,7 +1588,7 @@ function PlayPageClient() {
           {/* 封面展示 */}
           <div className='hidden md:block md:col-span-1 md:order-first'>
             <div className='pl-0 py-4 pr-6'>
-              <div className='bg-gray-300 dark:bg-gray-700 aspect-[3/4] flex items-center justify-center rounded-xl overflow-hidden'>
+              <div className='bg-gray-300 dark:bg-gray-700 aspect-[2/3] flex items-center justify-center rounded-xl overflow-hidden'>
                 {videoCover ? (
                   <img
                     src={videoCover}
